@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { api, Stock } from "@/lib/api";
+import { api, Stock } from "@/lib/api"; // ✅ Ensure correct import from api.ts
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -17,7 +17,7 @@ export default function StocksPage() {
     useEffect(() => {
         const fetchStocks = async () => {
             try {
-                const response = await api.stocks.getAll();
+                const response = await api.stocks.getAll(); // ✅ Fetch all stocks directly
                 console.log("API Response:", response);
 
                 if (!Array.isArray(response)) {
