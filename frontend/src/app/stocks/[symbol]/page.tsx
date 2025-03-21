@@ -6,8 +6,9 @@ import {Card, CardHeader, CardTitle, CardContent} from "@/components/ui/card";
 import {Button} from "@/components/ui/button";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import StockChart from "@/components/stockChart";
 
-import { api, Stock, StockRecommendation } from "@/lib/api";
+import { api, Stock, StockRecommendation, StockHistoryPoint } from "@/lib/api";
 
 export default function StockDetailPage() {
     const {symbol} = useParams();
@@ -15,6 +16,7 @@ export default function StockDetailPage() {
     const [recommendation, setRecommendation] = useState<StockRecommendation | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [history, setHistory] = useState<StockHistoryPoint[]>([]);
     const router = useRouter();
 
     useEffect(() => {
@@ -23,12 +25,14 @@ export default function StockDetailPage() {
         // Fetch stock details and recommendation data
         const fetchStockData = async () => {
             try {
-                const [stockResponse, recommendationResponse] = await Promise.all([
+                const [stockResponse, recommendationResponse, historyResponse] = await Promise.all([
                     api.stocks.getOne(symbol as string),
                     api.stocks.getRecommendation(symbol as string),
+                    api.stocks.getHistory(symbol as string, 30),
                 ]);
                 setStock(stockResponse);
                 setRecommendation(recommendationResponse);
+                setHistory(historyResponse);
                 setError(null);
             } catch (err) {
                 console.error("Error fetching stock details:", err);
@@ -57,9 +61,19 @@ export default function StockDetailPage() {
                 </CardHeader>
                 <CardContent>
                     <p className="text-lg font-semibold">Price: ${stock?.price.toFixed(2)}</p>
-                    <p className={`text-sm ${stock?.change >= 0 ? "text-green-500" : "text-red-500"}`}>
-                        Change: {stock?.change >= 0 ? `+${stock?.change}` : stock?.change}%
-                    </p>
+
+                    {history.length > 0 && (
+                        <div className="mt-8">
+                            <h3 className="text-xl font-semibold mb-2">Price History (Last 30 Days)</h3>
+                            <StockChart data={history} />
+                        </div>
+                    )}
+
+                    {stock && (
+                        <p className={`text-sm ${stock.change >= 0 ? "text-green-500" : "text-red-500"}`}>
+                            Change: {stock.change >= 0 ? `+${stock.change}` : stock.change}%
+                        </p>
+                    )}
                     <p className="text-gray-600 mt-4">{stock?.name}</p>
 
                     {/* Recommendation Section */}
